@@ -1,0 +1,6 @@
+$kind: collection
+description: Run the folder top-to-bottom with the Collection Runner. Each request has tests for the expected status code and response shape.
+variables:
+  baseUrl: http://127.0.0.1:5000
+  createdId: ""
+  baselineEntries: ""

@@ -1,0 +1,22 @@
+$kind: http-request
+url: "{{baseUrl}}/activities"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "name": "Rahul",
+      "activity": "Football",
+      "hours": 3
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      const d = pm.response.json().data;
+      pm.test('returns record', () => { pm.expect(d.name).to.eql('Rahul'); pm.expect(d.hours).to.eql(3); pm.expect(d.id).to.be.a('number'); });
+      pm.collectionVariables.set('createdId', d.id);
+    language: text/javascript
+order: 2000

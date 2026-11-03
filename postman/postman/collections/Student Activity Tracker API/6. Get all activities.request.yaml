@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{baseUrl}}/activities"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const b = pm.response.json();
+      pm.test('data is array', () => pm.expect(b.data).to.be.an('array'));
+      pm.test('contains created record', () => pm.expect(b.data.map(a => a.id)).to.include(pm.collectionVariables.get('createdId')));
+    language: text/javascript
+order: 6000

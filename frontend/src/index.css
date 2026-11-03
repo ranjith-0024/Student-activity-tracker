@@ -1,0 +1,20 @@
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Keep Recharts focus outlines from showing a black box on click */
+.recharts-wrapper *:focus {
+  outline: none;
+}

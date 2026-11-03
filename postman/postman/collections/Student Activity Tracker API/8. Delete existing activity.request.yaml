@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/activities/{{createdId}}"
+method: DELETE
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('returns deleted id', () => pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('createdId')));
+    language: text/javascript
+order: 8000

@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{baseUrl}}/summary"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const s = pm.response.json();
+      pm.test('has summary fields', () => pm.expect(s).to.have.all.keys('total_entries','total_students','total_hours','most_active_user'));
+      pm.collectionVariables.set('baselineEntries', s.total_entries);
+    language: text/javascript
+order: 1000

@@ -1,0 +1,11 @@
+# Use this workspace to collaborate
+workspace:
+  id: bf16aa23-9645-4f49-a96f-5dbddf6af4a0
+
+localResources:
+  collections:
+    - ../Student-Activity-Tracker.postman_collection.json
+
+cloudResources:
+  collections:
+    ../postman/collections/Student Activity Tracker API: 895b8087-0165-45cd-9f01-712068ea0c24

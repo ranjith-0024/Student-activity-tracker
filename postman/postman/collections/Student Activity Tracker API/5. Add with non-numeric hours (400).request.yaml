@@ -1,0 +1,20 @@
+$kind: http-request
+url: "{{baseUrl}}/activities"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "name": "Rahul",
+      "activity": "Football",
+      "hours": "abc"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('400 Bad Request', () => pm.response.to.have.status(400));
+      pm.test('hours error', () => pm.expect(pm.response.json().error.details.hours).to.include('valid number'));
+    language: text/javascript
+order: 5000

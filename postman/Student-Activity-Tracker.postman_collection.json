@@ -1,0 +1,127 @@
+{
+  "info": {
+    "name": "Student Activity Tracker API",
+    "description": "Run the folder top-to-bottom with the Collection Runner. Each request has tests for the expected status code and response shape.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://127.0.0.1:5000" },
+    { "key": "createdId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Summary (baseline)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('200 OK', () => pm.response.to.have.status(200));",
+        "const s = pm.response.json();",
+        "pm.test('has summary fields', () => pm.expect(s).to.have.all.keys('total_entries','total_students','total_hours','most_active_user'));",
+        "pm.collectionVariables.set('baselineEntries', s.total_entries);"
+      ] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/summary" }
+    },
+    {
+      "name": "2. Add valid activity",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('201 Created', () => pm.response.to.have.status(201));",
+        "const d = pm.response.json().data;",
+        "pm.test('returns record', () => { pm.expect(d.name).to.eql('Rahul'); pm.expect(d.hours).to.eql(3); pm.expect(d.id).to.be.a('number'); });",
+        "pm.collectionVariables.set('createdId', d.id);"
+      ] } }],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/activities",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Rahul\",\n  \"activity\": \"Football\",\n  \"hours\": 3\n}" }
+      }
+    },
+    {
+      "name": "3. Add with empty fields (400)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('400 Bad Request', () => pm.response.to.have.status(400));",
+        "const e = pm.response.json().error;",
+        "pm.test('field errors present', () => pm.expect(e.details).to.have.all.keys('name','activity','hours'));"
+      ] } }],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/activities",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"\",\n  \"activity\": \"\",\n  \"hours\": \"\"\n}" }
+      }
+    },
+    {
+      "name": "4. Add with negative hours (400)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('400 Bad Request', () => pm.response.to.have.status(400));",
+        "pm.test('hours error', () => pm.expect(pm.response.json().error.details.hours).to.include('greater than zero'));"
+      ] } }],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/activities",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Rahul\",\n  \"activity\": \"Football\",\n  \"hours\": -2\n}" }
+      }
+    },
+    {
+      "name": "5. Add with non-numeric hours (400)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('400 Bad Request', () => pm.response.to.have.status(400));",
+        "pm.test('hours error', () => pm.expect(pm.response.json().error.details.hours).to.include('valid number'));"
+      ] } }],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/activities",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Rahul\",\n  \"activity\": \"Football\",\n  \"hours\": \"abc\"\n}" }
+      }
+    },
+    {
+      "name": "6. Get all activities",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('200 OK', () => pm.response.to.have.status(200));",
+        "const b = pm.response.json();",
+        "pm.test('data is array', () => pm.expect(b.data).to.be.an('array'));",
+        "pm.test('contains created record', () => pm.expect(b.data.map(a => a.id)).to.include(pm.collectionVariables.get('createdId')));"
+      ] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/activities" }
+    },
+    {
+      "name": "7. Summary after create",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('200 OK', () => pm.response.to.have.status(200));",
+        "pm.test('entries increased by 1', () => pm.expect(pm.response.json().total_entries).to.eql(Number(pm.collectionVariables.get('baselineEntries')) + 1));"
+      ] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/summary" }
+    },
+    {
+      "name": "8. Delete existing activity",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('200 OK', () => pm.response.to.have.status(200));",
+        "pm.test('returns deleted id', () => pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('createdId')));"
+      ] } }],
+      "request": { "method": "DELETE", "url": "{{baseUrl}}/activities/{{createdId}}" }
+    },
+    {
+      "name": "9. Delete same activity again (404)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('404 Not Found', () => pm.response.to.have.status(404));",
+        "pm.test('error body', () => pm.expect(pm.response.json().error.status).to.eql(404));"
+      ] } }],
+      "request": { "method": "DELETE", "url": "{{baseUrl}}/activities/{{createdId}}" }
+    },
+    {
+      "name": "10. Delete non-existing id (404)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('404 Not Found', () => pm.response.to.have.status(404));"
+      ] } }],
+      "request": { "method": "DELETE", "url": "{{baseUrl}}/activities/999999" }
+    },
+    {
+      "name": "11. Summary after delete",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('200 OK', () => pm.response.to.have.status(200));",
+        "pm.test('back to baseline', () => pm.expect(pm.response.json().total_entries).to.eql(Number(pm.collectionVariables.get('baselineEntries'))));"
+      ] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/summary" }
+    }
+  ]
+}
